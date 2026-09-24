@@ -1,0 +1,1224 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Перетоки между жилыми проектами — Cityzen · VEER · SET</title>
+<style>
+:root{
+  --bg:#f5f6f4;
+  --panel:#ffffff;
+  --ink:#192128;
+  --muted:#6d777d;
+  --line:#dce1e2;
+  --soft:#eef1f0;
+  --cityzen:#376a99;
+  --veer:#438577;
+  --set:#765d97;
+  --warm:#b36c4f;
+  --cool:#4f7e9f;
+  --neutral:#9da5a8;
+  --external:#e8ebea;
+  --external-stroke:#9aa3a5;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;
+  background:var(--bg);
+  color:var(--ink);
+  font-family:Inter,Segoe UI,Arial,sans-serif;
+  -webkit-font-smoothing:antialiased;
+}
+button{font:inherit}
+.app{
+  max-width:1600px;
+  margin:0 auto;
+  padding:28px 30px 34px;
+}
+.topbar{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:24px;
+  margin-bottom:18px;
+}
+.title h1{
+  font-size:29px;
+  line-height:1.1;
+  margin:0 0 7px;
+  font-weight:680;
+  letter-spacing:-.02em;
+}
+.title p{
+  margin:0;
+  font-size:14px;
+  color:var(--muted);
+}
+.meta{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  white-space:nowrap;
+  color:var(--muted);
+  font-size:12px;
+}
+.info-btn{
+  width:34px;height:34px;border-radius:50%;
+  border:1px solid var(--line);background:#fff;color:var(--ink);
+  cursor:pointer;font-weight:700;
+}
+.controls{
+  background:var(--panel);
+  border:1px solid var(--line);
+  display:flex;
+  flex-wrap:wrap;
+  gap:16px 22px;
+  align-items:center;
+  padding:13px 15px;
+  margin-bottom:14px;
+}
+.control-group{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  min-width:0;
+}
+.control-label{
+  color:var(--muted);
+  font-size:11px;
+  text-transform:uppercase;
+  letter-spacing:.08em;
+  margin-right:2px;
+}
+.segment{
+  display:flex;
+  gap:3px;
+  background:var(--soft);
+  padding:3px;
+  border-radius:9px;
+}
+.segment button{
+  border:0;
+  background:transparent;
+  color:#586267;
+  border-radius:7px;
+  padding:7px 10px;
+  cursor:pointer;
+  transition:.15s ease;
+  white-space:nowrap;
+}
+.segment button.active{
+  background:#fff;
+  color:var(--ink);
+  box-shadow:0 1px 4px rgba(20,30,35,.08);
+}
+.check{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  color:#566066;
+  font-size:13px;
+  cursor:pointer;
+}
+.check input{accent-color:#5b6970}
+.workspace{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) 310px;
+  gap:14px;
+  align-items:stretch;
+}
+.map-card,.side{
+  background:var(--panel);
+  border:1px solid var(--line);
+}
+.map-card{
+  position:relative;
+  overflow:hidden;
+  min-height:690px;
+}
+.map-head{
+  position:absolute;
+  left:18px;right:18px;top:14px;
+  display:flex;
+  justify-content:space-between;
+  gap:16px;
+  z-index:5;
+  pointer-events:none;
+}
+.map-note{
+  color:var(--muted);
+  font-size:12px;
+  line-height:1.45;
+  max-width:420px;
+}
+.legend{
+  font-size:12px;
+  color:var(--muted);
+  text-align:right;
+  line-height:1.5;
+}
+.legend strong{color:var(--ink);font-weight:600}
+svg{
+  width:100%;
+  height:690px;
+  display:block;
+}
+.link{
+  fill:none;
+  stroke-linecap:round;
+  transition:opacity .16s ease,stroke-width .16s ease,filter .16s ease;
+  cursor:pointer;
+}
+.link.hit{
+  stroke:transparent;
+  stroke-width:18px;
+  fill:none;
+  cursor:pointer;
+}
+.flow-arrow{
+  pointer-events:none;
+  transition:opacity .16s ease,filter .16s ease;
+  paint-order:stroke fill;
+  stroke:#ffffff;
+  stroke-width:1.35;
+  stroke-linejoin:round;
+}
+.node{cursor:pointer}
+.node circle.main{
+  transition:r .16s ease,opacity .16s ease,stroke-width .16s ease;
+}
+.node text{
+  user-select:none;
+  pointer-events:none;
+}
+.node .name{
+  font-size:13px;
+  fill:#313b40;
+  font-weight:580;
+}
+.node.core .name{
+  fill:white;
+  font-weight:720;
+  letter-spacing:.01em;
+}
+.node .sub{
+  font-size:9px;
+  fill:rgba(255,255,255,.78);
+  letter-spacing:.08em;
+  text-transform:uppercase;
+}
+.self-ring{
+  fill:none;
+  stroke:rgba(255,255,255,.66);
+  stroke-width:2;
+  stroke-dasharray:4 4;
+  pointer-events:none;
+}
+.dim{opacity:.09!important}
+.node.dim{opacity:.19!important}
+.core-focus-dim{opacity:.22!important}
+.node.core-focus-dim{opacity:.34!important}
+.core-focus-strong{opacity:1!important}
+.node.core-focus-strong circle.main{
+  filter:drop-shadow(0 2px 5px rgba(25,33,40,.12));
+}
+.focused{filter:drop-shadow(0 2px 5px rgba(25,33,40,.15))}
+.side{
+  padding:19px 18px;
+  min-height:690px;
+}
+.side h2{
+  font-size:18px;
+  margin:0 0 6px;
+  letter-spacing:-.01em;
+}
+.side .eyebrow{
+  color:var(--muted);
+  font-size:10px;
+  text-transform:uppercase;
+  letter-spacing:.1em;
+  margin-bottom:8px;
+}
+.side p{
+  color:#566168;
+  font-size:13px;
+  line-height:1.55;
+  margin:8px 0 15px;
+}
+.rule{height:1px;background:var(--line);margin:16px 0}
+.kpi{
+  display:grid;
+  grid-template-columns:1fr auto;
+  gap:8px 10px;
+  align-items:baseline;
+  padding:8px 0;
+  border-bottom:1px solid #edf0ef;
+}
+.kpi .label{font-size:12px;color:var(--muted)}
+.kpi .value{font-size:17px;font-weight:680}
+.balance-strip{
+  margin:14px 0 5px;
+}
+.balance-axis{
+  height:8px;
+  background:linear-gradient(90deg,var(--cool),#c9cdce 50%,var(--warm));
+  border-radius:8px;
+  position:relative;
+}
+.balance-pointer{
+  position:absolute;top:-4px;
+  width:2px;height:16px;background:#1c2429;
+}
+.balance-labels{
+  display:flex;justify-content:space-between;
+  margin-top:6px;
+  color:var(--muted);font-size:10px;
+}
+.empty-state{
+  height:100%;
+  min-height:630px;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  gap:8px;
+}
+.empty-state .big{
+  font-size:20px;
+  font-weight:650;
+  color:#39444a;
+}
+.empty-state .small{
+  color:var(--muted);
+  line-height:1.55;
+  font-size:13px;
+}
+.tooltip{
+  position:absolute;
+  pointer-events:none;
+  background:#172127;
+  color:#fff;
+  border-radius:9px;
+  padding:9px 11px;
+  font-size:12px;
+  line-height:1.42;
+  max-width:300px;
+  z-index:20;
+  opacity:0;
+  transform:translate(10px,10px);
+  transition:opacity .08s ease;
+  box-shadow:0 5px 18px rgba(10,20,25,.18);
+}
+.tooltip.show{opacity:1}
+.tooltip .muted{color:#b9c2c5}
+.modal-backdrop{
+  position:fixed;inset:0;background:rgba(20,28,32,.3);
+  display:none;align-items:center;justify-content:center;
+  padding:22px;z-index:50;
+}
+.modal-backdrop.show{display:flex}
+.modal{
+  width:min(650px,100%);
+  background:#fff;border:1px solid var(--line);
+  padding:24px;
+  box-shadow:0 12px 50px rgba(0,0,0,.12);
+}
+.modal h3{margin:0 0 10px;font-size:20px}
+.modal p,.modal li{font-size:13px;line-height:1.55;color:#526067}
+.modal ul{padding-left:19px}
+.modal .close{
+  float:right;border:1px solid var(--line);background:#fff;
+  border-radius:7px;padding:6px 9px;cursor:pointer;
+}
+@media(max-width:1050px){
+  .workspace{grid-template-columns:1fr}
+  .side{min-height:auto}
+  .map-card{min-height:620px}
+  svg{height:620px}
+  .empty-state{min-height:250px}
+}
+@media(max-width:720px){
+  .app{padding:18px 12px 24px}
+  .topbar{flex-direction:column}
+  .controls{gap:12px}
+  .control-group{width:100%;overflow:auto}
+  .control-label{min-width:86px}
+  .map-card{min-height:560px}
+  svg{height:560px}
+  .map-head{position:static;padding:12px 12px 0;display:block}
+  .legend{text-align:left;margin-top:5px}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="topbar">
+    <div class="title">
+      <h1>Перетоки между жилыми проектами</h1>
+      <p>Cityzen · VEER · SET и наиболее связанные проекты</p>
+    </div>
+    <div class="meta">
+      <span id="periodText"></span>
+      <button class="info-btn" id="infoBtn" aria-label="Методология">i</button>
+    </div>
+  </div>
+
+  <div class="controls">
+    <div class="control-group">
+      <span class="control-label">Слой</span>
+      <div class="segment" id="modeSegment">
+        <button data-mode="balance" class="active">Баланс D/R</button>
+        <button data-mode="donor">Доноры</button>
+        <button data-mode="recipient">Реципиенты</button>
+      </div>
+    </div>
+    <div class="control-group">
+      <span class="control-label">Проект</span>
+      <div class="segment" id="projectSegment">
+        <button data-project="all" class="active">Все 3</button>
+        <button data-project="ЖК Cityzen">Cityzen</button>
+        <button data-project="ЖК VEER">VEER</button>
+        <button data-project="ЖК SET">SET</button>
+      </div>
+    </div>
+    <div class="control-group">
+      <span class="control-label">Окружение</span>
+      <div class="segment" id="countSegment">
+        <button data-count="5">TOP 5</button>
+        <button data-count="10">TOP 10</button>
+        <button data-count="all" class="active">Все</button>
+      </div>
+    </div>
+    <label class="check"><input type="checkbox" id="trioOnly"> Только связи внутри тройки</label>
+    <label class="check"><input type="checkbox" id="coreFocus" checked> Акцент на 3 ЖК</label>
+  </div>
+
+  <div class="workspace">
+    <div class="map-card" id="mapCard">
+      <div class="map-head">
+        <div class="map-note" id="mapNote"></div>
+        <div class="legend" id="legend"></div>
+      </div>
+      <svg id="network" viewBox="0 0 1120 720" role="img" aria-label="Интерактивная карта перетоков между жилыми проектами"></svg>
+      <div class="tooltip" id="tooltip"></div>
+    </div>
+
+    <aside class="side" id="sidePanel"></aside>
+  </div>
+</div>
+
+<div class="modal-backdrop" id="modalBackdrop" role="dialog" aria-modal="true" aria-label="Методология">
+  <div class="modal">
+    <button class="close" id="closeModal">Закрыть</button>
+    <h3>Как читать карту</h3>
+    <p>Значения — это атрибуционный вес договоров бронирования в линейной модели атрибуции, а не буквальное количество договоров.</p>
+    <ul>
+      <li><b>Доноры:</b> реклама центрального ЖК → бронь другого ЖК.</li>
+      <li><b>Реципиенты:</b> реклама другого ЖК → бронь центрального ЖК.</li>
+      <li><b>Баланс D/R:</b> D/R = «из выбранного/центрального ЖК» ÷ «в выбранный/центральный ЖК». D/R &gt; 1 означает более сильный исходящий поток, D/R &lt; 1 — более сильный входящий. Стрелка показывает доминирующее направление.</li>
+      <li>Технические агрегаты, БЦ и офисные объекты исключены из основного окружения.</li>
+      <li>Самосвязи не рисуются петлями: пунктирное внутреннее кольцо центрального узла обозначает наличие собственного вклада.</li>
+      <li><b>«Акцент на 3 ЖК»</b> приглушает внешние проекты и их связи, оставляя Cityzen, VEER, SET и связи между ними визуально приоритетными.</li>
+    </ul>
+    <p>TOP формируется программно по сумме входящих и исходящих весов между внешним ЖК и тремя центральными проектами.</p>
+  </div>
+</div>
+
+<script>
+const DATA = {"core":["ЖК Cityzen","ЖК VEER","ЖК SET"],"donor":{"ЖК Cityzen":{"ЖК Эко Видное 2.0":52.62,"ЖК Селигер сити":40.26,"ЖК Метрополия":36.56,"ЖК City Bay":118.33,"ЖК MOD":27.57,"ЖК Симфония 34":19.39,"ЖК Slava":15.93,"ЖК Jois":11.27,"ЖК Cityzen":97.64,"ЖК VEER":35.27,"ЖК SET":39.99,"ЖК МИRА":12.81,"Luce":0.33,"Nicole":1.19,"Forum":1.62,"ЖК Фили Сити":6.35,"ЖК Мыс":14.22,"БЦ Jois":2.86,"БЦ Bell":1.34,"Дом Соболева":0.35,"БЦ Mind":1.6,"Clos 17":0.07,"ЖК One":8.4,"БЦ One":0.52,"Климашкина 7/11":1.24,"БЦ Top Tower":1.42,"БЦ SET":0.85,"БЦ Cityzen":0.26,"ЖК C5":10.65,"26 ParkView":1.0},"ЖК VEER":{"ЖК Эко Видное 2.0":18.88,"ЖК Селигер сити":22.4,"ЖК Метрополия":20.17,"ЖК City Bay":47.21,"ЖК MOD":13.59,"ЖК Симфония 34":15.45,"ЖК Slava":7.71,"ЖК Jois":6.47,"ЖК Cityzen":19.28,"ЖК VEER":71.3,"ЖК SET":52.25,"ЖК МИRА":5.74,"Luce":0.38,"Nicole":0.02,"Forum":0.37,"ЖК Фили Сити":3.11,"ЖК Мыс":6.38,"БЦ Jois":0.9,"БЦ Bell":1.49,"БЦ Mind":0.27,"Clos 17":0.07,"ЖК One":1.88,"БЦ One":0.17,"Климашкина 7/11":0.18,"БЦ Top Tower":0.31,"БЦ SET":0.45,"БЦ Cityzen":0.03,"ЖК C5":5.6,"26 ParkView":0.34},"ЖК SET":{"ЖК Эко Видное 2.0":40.26,"ЖК Селигер сити":32.08,"ЖК Метрополия":38.06,"ЖК City Bay":66.04,"ЖК MOD":21.51,"ЖК Симфония 34":36.18,"ЖК Slava":16.64,"ЖК Jois":13.63,"ЖК Cityzen":25.9,"ЖК VEER":57.95,"ЖК SET":83.29,"ЖК МИRА":8.34,"Luce":0.35,"Nicole":0.34,"Forum":3.91,"ЖК Фили Сити":4.6,"ЖК Мыс":19.38,"БЦ Jois":2.76,"БЦ Bell":1.77,"БЦ Mind":0.17,"Clos 17":0.13,"ЖК One":3.72,"БЦ One":0.43,"Климашкина 7/11":0.4,"БЦ Top Tower":0.79,"БЦ SET":1.07,"БЦ Cityzen":0.27,"ЖК C5":7.3,"26 ParkView":1.03}},"recipient":{"ЖК Cityzen":{"Остальное":15.58,"Без наименования ЖК (OL, Co-ex, Прочие, Другое)":288.12,"MR без наименования ЖК":180.26,"ЖК Cityzen":97.06,"ЖК Slava":21.16,"ЖК Симфония 34":15.28,"ЖК Мыс":18.67,"ЖК MOD":23.71,"Forum":5.01,"ЖК VEER":17.67,"ЖК Метрополия":7.36,"ЖК One":16.17,"ЖК SET":22.3,"ЖК City Bay":35.01,"ЖК МИRА":11.23,"Ton Center":1.33,"ЖК Селигер сити":14.96,"Clos 17":3.2,"ЖК Jois":18.3,"Nicole":7.57,"Luce":4.67,"БЦ Bell":5.05,"БЦ ICity":1.82,"ЖК Фили Сити":4.27,"Климашкина 7/11":1.23,"MR сданные объекты":1.75,"БЦ Top Tower":1.29,"БЦ SET":0.34,"Mind Office":0.74,"Павелецкая Сити":0.18,"ЖК Эко Видное 2.0":0.25,"26 ParkView":0.08,"Усадьба Демидова":0.07,"Дом Соболева":0.07,"ЖК 1-й Казачий":0.12,"ЖК C5":0.11,"MR Office":0.01},"ЖК VEER":{"Остальное":16.29,"Без наименования ЖК (OL, Co-ex, Прочие, Другое)":449.33,"MR без наименования ЖК":163.47,"ЖК Мыс":28.04,"ЖК SET":54.1,"ЖК VEER":62.38,"Forum":6.85,"ЖК Селигер сити":16.98,"ЖК MOD":27.01,"ЖК Slava":25.52,"ЖК Cityzen":35.26,"ЖК City Bay":37.68,"ЖК Метрополия":8.99,"ЖК One":21.49,"ЖК Симфония 34":15.44,"Luce":6.81,"ЖК МИRА":9.24,"ЖК Jois":25.78,"БЦ Bell":7.32,"Nicole":7.18,"Clos 17":3.78,"ЖК Фили Сити":6.9,"БЦ ICity":1.45,"Павелецкая Сити":0.51,"Климашкина 7/11":1.29,"Ton Center":0.39,"БЦ Top Tower":2.24,"ЖК 1-й Казачий":0.63,"ЖК C5":0.53,"Mind Office":0.92,"26 ParkView":0.3,"MR сданные объекты":1.29,"ЖК Эко Видное 2.0":0.95,"MR Office":0.17,"Дом Соболева":0.14,"БЦ SET":0.33,"Усадьба Демидова":0.02},"ЖК SET":{"Остальное":15.07,"Без наименования ЖК (OL, Co-ex, Прочие, Другое)":430.46,"MR без наименования ЖК":194.91,"ЖК SET":78.17,"Nicole":13.21,"ЖК Мыс":26.76,"ЖК Симфония 34":20.44,"ЖК Slava":26.38,"ЖК MOD":28.85,"ЖК VEER":38.91,"ЖК City Bay":39.7,"ЖК Cityzen":39.49,"Forum":6.77,"ЖК Метрополия":10.0,"ЖК Селигер сити":18.12,"ЖК МИRА":10.63,"ЖК One":22.51,"Павелецкая Сити":1.83,"ЖК Jois":23.97,"БЦ Bell":7.32,"ЖК Фили Сити":5.88,"Климашкина 7/11":2.17,"Luce":6.67,"Ton Center":0.84,"Clos 17":3.06,"Дом Соболева":0.48,"БЦ Top Tower":3.14,"БЦ ICity":1.58,"БЦ SET":0.83,"26 ParkView":0.75,"Mind Office":1.37,"MR сданные объекты":1.42,"ЖК Эко Видное 2.0":0.54,"ЖК 1-й Казачий":0.23,"ЖК C5":0.44,"Усадьба Демидова":0.06,"MR Office":0.01}},"rankedExternal":["ЖК City Bay","ЖК Селигер сити","ЖК MOD","ЖК Симфония 34","ЖК Метрополия","ЖК Эко Видное 2.0","ЖК Мыс","ЖК Slava","ЖК Jois","ЖК One","ЖК МИRА","ЖК Фили Сити","Nicole","ЖК C5","Forum","Luce","Clos 17","Климашкина 7/11","26 ParkView","Ton Center","Павелецкая Сити","Дом Соболева","ЖК 1-й Казачий","Усадьба Демидова"],"scores":{"Усадьба Демидова":0.15,"Nicole":29.509999999999998,"ЖК One":74.17,"ЖК 1-й Казачий":0.98,"ЖК Метрополия":121.14000000000001,"ЖК Селигер сити":144.8,"26 ParkView":3.5,"ЖК Мыс":113.45,"Климашкина 7/11":6.51,"Clos 17":10.309999999999999,"ЖК Jois":99.42,"ЖК MOD":142.24,"Luce":19.21,"ЖК City Bay":343.97,"ЖК Slava":113.34,"Дом Соболева":1.04,"ЖК C5":24.63,"ЖК Симфония 34":122.18,"Forum":24.53,"ЖК МИRА":57.989999999999995,"Ton Center":2.56,"ЖК Фили Сити":31.11,"ЖК Эко Видное 2.0":113.5,"Павелецкая Сити":2.52},"top10":["ЖК City Bay","ЖК Селигер сити","ЖК MOD","ЖК Симфония 34","ЖК Метрополия","ЖК Эко Видное 2.0","ЖК Мыс","ЖК Slava","ЖК Jois","ЖК One"],"period":"01.01.2025 - 31.08.2026","selfContribution":{"ЖК Cityzen":{"donor":97.64,"recipient":97.06},"ЖК VEER":{"donor":71.3,"recipient":62.38},"ЖК SET":{"donor":83.29,"recipient":78.17}}};
+
+const NS="http://www.w3.org/2000/svg";
+const svg=document.getElementById("network");
+const tooltip=document.getElementById("tooltip");
+const side=document.getElementById("sidePanel");
+const mapCard=document.getElementById("mapCard");
+const trioOnly=document.getElementById("trioOnly");
+const coreFocus=document.getElementById("coreFocus");
+const periodText=document.getElementById("periodText");
+const mapNote=document.getElementById("mapNote");
+const legend=document.getElementById("legend");
+
+periodText.textContent=DATA.period ? `Период: ${DATA.period.replace(" - "," – ")}` : "";
+
+const COLORS={
+  "ЖК Cityzen":"#376a99",
+  "ЖК VEER":"#438577",
+  "ЖК SET":"#765d97"
+};
+const CORE=DATA.core;
+
+// Stable node-size metric used in every tab.
+// External ЖК: sum of all inbound + outbound attribution weights with the 3-project core.
+// Core ЖК: sum of all inbound + outbound residential links to the displayed residential universe,
+// excluding self-links and technical / office categories already removed from DATA.rankedExternal.
+const NODE_STRENGTH={};
+for(const name of DATA.rankedExternal){
+  NODE_STRENGTH[name]=Number(DATA.scores[name]||0);
+}
+for(const p of CORE){
+  let total=0;
+  for(const other of [...CORE,...DATA.rankedExternal]){
+    if(other===p) continue;
+    total += Number(DATA.donor[p]?.[other]||0) + Number(DATA.recipient[p]?.[other]||0);
+  }
+  NODE_STRENGTH[p]=total;
+}
+function metricForNode(name){
+  const activeCore = state.project==="all" ? CORE.slice() : [state.project];
+
+  // What counts as "strength" depends on the active tab:
+  // donor      -> core -> other
+  // recipient  -> other -> core
+  // balance    -> both directions
+  if(CORE.includes(name)){
+    let total = 0;
+    const others = [...CORE, ...DATA.rankedExternal].filter(n => n !== name);
+    if(state.mode==="donor"){
+      for(const other of others) total += Number(DATA.donor[name]?.[other]||0);
+    }else if(state.mode==="recipient"){
+      for(const other of others) total += Number(DATA.recipient[name]?.[other]||0);
+    }else{
+      for(const other of others){
+        total += Number(DATA.donor[name]?.[other]||0) + Number(DATA.recipient[name]?.[other]||0);
+      }
+    }
+    return total;
+  }
+
+  // External node
+  let total = 0;
+  for(const coreName of activeCore){
+    if(state.mode==="donor"){
+      total += Number(DATA.donor[coreName]?.[name]||0);       // core -> external
+    }else if(state.mode==="recipient"){
+      total += Number(DATA.recipient[coreName]?.[name]||0);   // external -> core
+    }else{
+      total += Number(DATA.donor[coreName]?.[name]||0) + Number(DATA.recipient[coreName]?.[name]||0);
+    }
+  }
+  return total;
+}
+
+function nodeMaxForType(isCore){
+  const names = isCore ? CORE : externalList();
+  const vals = names.map(n => metricForNode(n));
+  return Math.max(1, ...vals);
+}
+
+function relationDirection(coreName, otherName){
+  const d=Number(DATA.donor[coreName]?.[otherName]||0);
+  const r=Number(DATA.recipient[coreName]?.[otherName]||0);
+  if(d<=0 && r<=0) return "none";
+  if(r===0 && d>0) return "toExternal";  // core -> external, so external is recipient
+  if(d===0 && r>0) return "toCore";      // external -> core, so external is donor
+  const ratio=d/r;
+  if(ratio>1.18) return "toExternal";
+  if(ratio<0.85) return "toCore";
+  return "balanced";
+}
+
+function externalDRStatus(name){
+  const act = state.project==="all" ? CORE.slice() : [state.project];
+  const dirs = [];
+  for(const p of act){
+    const dir = relationDirection(p, name);
+    if(dir==="toExternal" || dir==="toCore") dirs.push(dir);
+  }
+  if(!dirs.length) return "neutral";
+  if(dirs.every(d=>d==="toExternal")) return "recipient";
+  if(dirs.every(d=>d==="toCore")) return "donor";
+  return "neutral";
+}
+
+function externalNodeStyle(name){
+  const status = externalDRStatus(name);
+  if(status==="donor"){
+    return {fill:"#dbe7ef", stroke:"#6f95b1", text:"#38576c", status};
+  }
+  if(status==="recipient"){
+    return {fill:"#efdcd3", stroke:"#b6846f", text:"#6a493d", status};
+  }
+  return {fill:"#e8ebea", stroke:"#99a2a4", text:"#313b40", status:"neutral"};
+}
+
+let state={mode:"balance",project:"all",count:"all",trioOnly:false,coreFocus:true,locked:null};
+
+function shortName(n){return n.replace(/^ЖК\s+/,"");}
+function fmt(v){
+  return Number(v||0).toLocaleString("ru-RU",{maximumFractionDigits:2,minimumFractionDigits:0});
+}
+function ratioFmt(v){
+  if(!Number.isFinite(v)) return "∞";
+  return Number(v).toLocaleString("ru-RU",{minimumFractionDigits:2,maximumFractionDigits:2});
+}
+function esc(s){
+  return String(s).replace(/[&<>"']/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#039;"}[ch]));
+}
+function selectedCore(){
+  return state.project==="all" ? CORE.slice() : [state.project];
+}
+function externalList(){
+  if(state.trioOnly) return [];
+  if(state.count==="all") return DATA.rankedExternal.slice();
+  return DATA.rankedExternal.slice(0,Number(state.count));
+}
+
+function svgEl(tag,attrs={}){
+  const el=document.createElementNS(NS,tag);
+  for(const [k,v] of Object.entries(attrs)) el.setAttribute(k,v);
+  return el;
+}
+function clearSvg(){while(svg.firstChild)svg.removeChild(svg.firstChild);}
+
+function buildPositions(externals){
+  const pos={};
+  pos["ЖК Cityzen"]={x:560,y:278};
+  pos["ЖК VEER"]={x:425,y:465};
+  pos["ЖК SET"]={x:695,y:465};
+
+  const n=externals.length;
+  if(!n) return pos;
+
+  if(n<=12){
+    const rx=455, ry=260, cx=560, cy=405;
+    for(let i=0;i<n;i++){
+      const a=(-Math.PI/2)+(i/n)*Math.PI*2;
+      pos[externals[i]]={x:cx+Math.cos(a)*rx,y:cy+Math.sin(a)*ry};
+    }
+  }else{
+    const first=Math.ceil(n/2);
+    const rings=[
+      {items:externals.slice(0,first),rx:465,ry:264,offset:-Math.PI/2},
+      {items:externals.slice(first),rx:365,ry:213,offset:-Math.PI/2+Math.PI/Math.max(1,n-first)}
+    ];
+    for(const ring of rings){
+      ring.items.forEach((name,i)=>{
+        const a=ring.offset+(i/ring.items.length)*Math.PI*2;
+        pos[name]={x:560+Math.cos(a)*ring.rx,y:405+Math.sin(a)*ring.ry};
+      });
+    }
+  }
+  return pos;
+}
+
+function activeEntities(){
+  const ext=externalList();
+  return [...CORE,...ext];
+}
+
+function donorLinks(){
+  const links=[];
+  const act=selectedCore();
+  const ext=externalList();
+  const targets=[...CORE,...ext];
+  for(const p of act){
+    for(const t of targets){
+      if(t===p) continue;
+      const v=Number(DATA.donor[p]?.[t]||0);
+      if(v>0) links.push({
+        key:`donor|${p}|${t}`,source:p,target:t,value:v,mode:"donor",owner:p
+      });
+    }
+  }
+  return links;
+}
+function recipientLinks(){
+  const links=[];
+  const act=selectedCore();
+  const ext=externalList();
+  const sources=[...CORE,...ext];
+  for(const p of act){
+    for(const s of sources){
+      if(s===p) continue;
+      const v=Number(DATA.recipient[p]?.[s]||0);
+      if(v>0) links.push({
+        key:`recipient|${s}|${p}`,source:s,target:p,value:v,mode:"recipient",owner:p
+      });
+    }
+  }
+  return links;
+}
+
+function balanceLinks(){
+  const act=selectedCore();
+  const ext=externalList();
+  const neighbors=[...CORE,...ext];
+  const raw=[];
+  for(const p of act){
+    for(const b of neighbors){
+      if(b===p) continue;
+      const d=Number(DATA.donor[p]?.[b]||0);
+      const r=Number(DATA.recipient[p]?.[b]||0);
+      if(d<=0 && r<=0) continue;
+      raw.push({
+        key:`balance|${p}|${b}`,
+        a:p,b:b,source:p,target:b,
+        donor:d,recipient:r,total:d+r,
+        ratio:r===0 ? Infinity : d/r,
+        owner:p,mode:"balance"
+      });
+    }
+  }
+
+  // In "All 3", de-duplicate the core-core geometry while retaining both
+  // project perspectives in the details panel.
+  if(state.project==="all"){
+    const out=[], seen=new Map();
+    for(const l of raw){
+      if(CORE.includes(l.b)){
+        const pair=[l.a,l.b].sort().join("||");
+        if(!seen.has(pair)){
+          l.altPerspective=null;
+          seen.set(pair,l);
+          out.push(l);
+        }else{
+          seen.get(pair).altPerspective=l;
+        }
+      }else out.push(l);
+    }
+    return out;
+  }
+  return raw;
+}
+
+function linksForMode(){
+  if(state.mode==="donor") return donorLinks();
+  if(state.mode==="recipient") return recipientLinks();
+  return balanceLinks();
+}
+
+function lineWidth(link){
+  const v=state.mode==="balance" ? link.total : link.value;
+  return Math.max(1.5,Math.min(12,1.05*Math.sqrt(v)));
+}
+function balanceColor(r){
+  if(!Number.isFinite(r)) return "#a95f43";
+  if(r<0.67) return "#4f7e9f";
+  if(r<0.85) return "#7f9fb2";
+  if(r<=1.18) return "#9da5a8";
+  if(r<=1.5) return "#c09076";
+  return "#b36c4f";
+}
+function linkColor(link){
+  if(state.mode==="balance") return balanceColor(link.ratio);
+  return COLORS[link.owner]||"#6f7c80";
+}
+function markerId(link){return `arrow-${link.owner.replace(/\W/g,"")}`;}
+
+function addDefs(){
+  const defs=svgEl("defs");
+  for(const p of CORE){
+    const marker=svgEl("marker",{
+      id:`arrow-${p.replace(/\W/g,"")}`,
+      viewBox:"0 0 10 10",refX:"9",refY:"5",
+      markerWidth:"7",markerHeight:"7",orient:"auto"
+    });
+    marker.appendChild(svgEl("path",{d:"M 0 0 L 10 5 L 0 10 z",fill:COLORS[p]}));
+    defs.appendChild(marker);
+  }
+
+  const donorMarker=svgEl("marker",{
+    id:"balance-donor-arrow",viewBox:"0 0 10 10",refX:"9",refY:"5",
+    markerWidth:"7",markerHeight:"7",orient:"auto"
+  });
+  donorMarker.appendChild(svgEl("path",{d:"M 0 0 L 10 5 L 0 10 z",fill:"#b36c4f"}));
+  defs.appendChild(donorMarker);
+
+  const recipientMarker=svgEl("marker",{
+    id:"balance-recipient-arrow",viewBox:"0 0 10 10",refX:"9",refY:"5",
+    markerWidth:"7",markerHeight:"7",orient:"auto"
+  });
+  recipientMarker.appendChild(svgEl("path",{d:"M 0 0 L 10 5 L 0 10 z",fill:"#4f7e9f"}));
+  defs.appendChild(recipientMarker);
+
+  const neutralEnd=svgEl("marker",{
+    id:"balance-neutral-end",viewBox:"0 0 10 10",refX:"9",refY:"5",
+    markerWidth:"6.5",markerHeight:"6.5",orient:"auto"
+  });
+  neutralEnd.appendChild(svgEl("path",{d:"M 0 0 L 10 5 L 0 10 z",fill:"#7f898d"}));
+  defs.appendChild(neutralEnd);
+
+  const neutralStart=svgEl("marker",{
+    id:"balance-neutral-start",viewBox:"0 0 10 10",refX:"1",refY:"5",
+    markerWidth:"6.5",markerHeight:"6.5",orient:"auto"
+  });
+  neutralStart.appendChild(svgEl("path",{d:"M 10 0 L 0 5 L 10 10 z",fill:"#7f898d"}));
+  defs.appendChild(neutralStart);
+
+  svg.appendChild(defs);
+}
+
+function pathFor(a,b,reverseIndex=0,sourceRadius=0,targetRadius=0){
+  const dx=b.x-a.x, dy=b.y-a.y;
+  const len=Math.max(1,Math.hypot(dx,dy));
+  const ux=dx/len, uy=dy/len;
+
+  // Обрезаем линию по границам узлов, чтобы стрелка не пряталась под кругом.
+  const startPad=Math.max(0,sourceRadius+4);
+  const endPad=Math.max(0,targetRadius+12);
+  const sx=a.x+ux*startPad, sy=a.y+uy*startPad;
+  const tx=b.x-ux*endPad, ty=b.y-uy*endPad;
+
+  const cdx=tx-sx, cdy=ty-sy;
+  const clen=Math.max(1,Math.hypot(cdx,cdy));
+  const nx=-cdy/clen, ny=cdx/clen;
+  let bend=0.16*clen;
+  if(clen>500) bend=0.11*clen;
+  if(reverseIndex) bend*=reverseIndex;
+  const mx=(sx+tx)/2 + nx*bend;
+  const my=(sy+ty)/2 + ny*bend;
+  return `M ${sx} ${sy} Q ${mx} ${my} ${tx} ${ty}`;
+}
+
+function curveOffset(link,allLinks){
+  if(state.mode==="balance") return 1;
+  const reverse=allLinks.find(x=>x.source===link.target && x.target===link.source);
+  if(!reverse) return 1;
+  return link.source.localeCompare(link.target)<0 ? 1 : -1;
+}
+
+function nodeRadius(name){
+  const strength = Math.max(0, Number(metricForNode(name)||0));
+
+  if(CORE.includes(name)){
+    const t = Math.sqrt(strength / nodeMaxForType(true));
+    return 39 + 10*t; // 39–49 px
+  }
+
+  const t = Math.sqrt(strength / nodeMaxForType(false));
+  return 15 + 16*t;   // 15–31 px
+}
+
+function addFlowArrow(pathEl,color,key,fraction=0.76,reverse=false,size=8){
+  // The line itself stays continuous. This triangle is only an overlay
+  // positioned along the path and rotated to its local tangent.
+  const total=pathEl.getTotalLength();
+  if(!Number.isFinite(total) || total<24) return null;
+
+  const at=Math.max(4,Math.min(total-4,total*fraction));
+  const delta=Math.max(2,Math.min(6,total*0.015));
+  const p=pathEl.getPointAtLength(at);
+  const p0=pathEl.getPointAtLength(Math.max(0,at-delta));
+  const p1=pathEl.getPointAtLength(Math.min(total,at+delta));
+  let angle=Math.atan2(p1.y-p0.y,p1.x-p0.x)*180/Math.PI;
+  if(reverse) angle+=180;
+
+  const s=size;
+  const points=`${s},0 ${-s*0.72},${-s*0.62} ${-s*0.72},${s*0.62}`;
+  const arrow=svgEl("polygon",{
+    points,
+    class:"flow-arrow",
+    fill:color,
+    transform:`translate(${p.x} ${p.y}) rotate(${angle})`,
+    "data-key":key
+  });
+  return arrow;
+}
+
+function render(){
+  clearSvg();
+  addDefs();
+  const ext=externalList();
+  const entities=[...CORE,...ext];
+  const pos=buildPositions(ext);
+  const links=linksForMode();
+
+  const gLinks=svgEl("g",{class:"links"});
+  svg.appendChild(gLinks);
+
+  links.forEach(link=>{
+    if(!pos[link.source]||!pos[link.target]) return;
+    let drawSource=link.source;
+    let drawTarget=link.target;
+    if(state.mode==="balance" && link.ratio<0.85){
+      // Recipient dominates: draw the visible path in the opposite direction,
+      // so the arrow points from the other ЖК into the central/anchor ЖК.
+      drawSource=link.target;
+      drawTarget=link.source;
+    }
+    const d=pathFor(
+      pos[drawSource],
+      pos[drawTarget],
+      curveOffset(link,links),
+      nodeRadius(drawSource),
+      nodeRadius(drawTarget)
+    );
+    const color=linkColor(link);
+    const path=svgEl("path",{
+      d, class:"link visual-link",
+      stroke:color,
+      "stroke-width":lineWidth(link),
+      opacity:state.mode==="balance"?.78:.69,
+      "data-key":link.key
+    });
+    // Keep the connection itself unbroken. Direction is shown by a separate
+    // arrowhead placed closer to the end of the curve rather than at the node.
+    gLinks.appendChild(path);
+
+    const arrowSize=Math.max(6.8,Math.min(10.5,6.2+lineWidth(link)*0.38));
+    if(state.mode!=="balance"){
+      const arrow=addFlowArrow(path,color,link.key,0.76,false,arrowSize);
+      if(arrow) gLinks.appendChild(arrow);
+    }else if(link.ratio>1.18 || link.ratio<0.85){
+      // The balance path is already oriented along the dominant direction.
+      const arrow=addFlowArrow(path,color,link.key,0.76,false,arrowSize);
+      if(arrow) gLinks.appendChild(arrow);
+    }else{
+      // Near balance: gray links stay without direction arrows.
+      // This keeps the connection visually neutral and avoids implying a dominant flow.
+    }
+
+    const hit=svgEl("path",{d,class:"link hit","data-key":link.key});
+    hit.addEventListener("mouseenter",ev=>focusLink(link,ev));
+    hit.addEventListener("mousemove",moveTooltip);
+    hit.addEventListener("mouseleave",()=>{if(!state.locked)clearFocus(); hideTooltip();});
+    hit.addEventListener("click",ev=>{
+      ev.stopPropagation();
+      state.locked={type:"link",key:link.key};
+      focusLink(link,ev,true);
+      showLinkPanel(link);
+    });
+    gLinks.appendChild(hit);
+  });
+
+  const gNodes=svgEl("g",{class:"nodes"});
+  svg.appendChild(gNodes);
+
+  entities.forEach(name=>{
+    const p=pos[name];
+    if(!p) return;
+    const isCore=CORE.includes(name);
+    const g=svgEl("g",{class:`node ${isCore?"core":"external"}`,transform:`translate(${p.x} ${p.y})`,"data-name":name});
+    const r=nodeRadius(name);
+    const extStyle=!isCore ? externalNodeStyle(name) : null;
+    const fill=isCore?COLORS[name]:extStyle.fill;
+    const stroke=isCore?COLORS[name]:extStyle.stroke;
+    const circle=svgEl("circle",{class:"main",r,fill,stroke,"stroke-width":isCore?1:1.2});
+    g.appendChild(circle);
+
+    if(isCore){
+      g.appendChild(svgEl("circle",{class:"self-ring",r:r-8}));
+    }
+
+    const label=svgEl("text",{class:"name","text-anchor":"middle","dominant-baseline":"middle"});
+    if(isCore){
+      label.textContent=shortName(name);
+      g.appendChild(label);
+      const sub=svgEl("text",{class:"sub","text-anchor":"middle",y:17});
+      sub.textContent="ядро";
+      g.appendChild(sub);
+    }else{
+      const dx=p.x-560, dy=p.y-365;
+      const len=Math.max(1,Math.hypot(dx,dy));
+      const ux=dx/len, uy=dy/len;
+      const tx=ux*(r+11), ty=uy*(r+11);
+      if(name==="ЖК Симфония 34"){
+        // Keep only this label on the outer side of the node.
+        label.setAttribute("x",r+12);
+        label.setAttribute("y",0);
+        label.setAttribute("text-anchor","start");
+        label.setAttribute("dominant-baseline","middle");
+      }else{
+        label.setAttribute("x",tx);
+        label.setAttribute("y",ty);
+        label.setAttribute("text-anchor",Math.abs(ux)<.2?"middle":ux>0?"start":"end");
+        label.setAttribute("dominant-baseline","middle");
+      }
+      if(extStyle) label.setAttribute("fill",extStyle.text);
+      label.textContent=shortName(name);
+      g.appendChild(label);
+    }
+
+    g.addEventListener("mouseenter",ev=>focusNode(name,ev));
+    g.addEventListener("mousemove",moveTooltip);
+    g.addEventListener("mouseleave",()=>{if(!state.locked)clearFocus(); hideTooltip();});
+    g.addEventListener("click",ev=>{
+      ev.stopPropagation();
+      state.locked={type:"node",key:name};
+      focusNode(name,ev,true);
+      showNodePanel(name);
+    });
+    gNodes.appendChild(g);
+  });
+
+  svg.addEventListener("click",()=>{
+    state.locked=null;
+    clearFocus();
+    defaultPanel();
+  },{once:true});
+
+  updateModeText();
+  applyCoreFocus();
+  if(state.locked){
+    const lk=links.find(l=>state.locked.type==="link"&&l.key===state.locked.key);
+    if(lk) focusLink(lk,null,true);
+    else if(state.locked.type==="node" && entities.includes(state.locked.key)) focusNode(state.locked.key,null,true);
+    else {state.locked=null;defaultPanel();}
+  }else defaultPanel();
+}
+
+function updateModeText(){
+  if(state.mode==="donor"){
+    mapNote.textContent="Куда перетекает атрибуционный вес после взаимодействия с рекламой Cityzen, VEER и SET.";
+    legend.innerHTML="<strong>Доноры</strong> · стрелка = куда ушел поток · цвет линии = из какого ключевого ЖК · размер шара = донорская сила связи · цвет внешнего шара = D/R-статус";
+  }else if(state.mode==="recipient"){
+    mapNote.textContent="Из кампаний каких ЖК приходит атрибуционный вес в бронирования Cityzen, VEER и SET.";
+    legend.innerHTML="<strong>Реципиенты</strong> · стрелка = откуда → в какой ключевой ЖК пришел поток · цвет линии = целевой ключевой ЖК · размер шара = реципиентная сила связи · цвет внешнего шара = D/R-статус";
+  }else{
+    const anchor = state.project==="all" ? "центрального ЖК" : shortName(state.project);
+    mapNote.textContent=`D/R читается относительно ${anchor}: D/R = «из него в другой ЖК» ÷ «из другого ЖК в него». Стрелка показывает доминирующее направление.`;
+    legend.innerHTML="<strong>D/R &gt; 1</strong> → стрелка ИЗ центрального ЖК · <strong>D/R &lt; 1</strong> → стрелка В центральный ЖК · серый = близкий баланс без стрелки · размер шара = суммарная связь с ядром · цвет внешнего шара = D/R-статус";
+  }
+}
+
+function allVisualLinks(){return [...svg.querySelectorAll(".visual-link,.flow-arrow")];}
+function allNodes(){return [...svg.querySelectorAll(".node")];}
+
+function applyCoreFocus(){
+  const links=linksForMode();
+  const coreLinkKeys=new Set(
+    links
+      .filter(l=>CORE.includes(l.source) && CORE.includes(l.target))
+      .map(l=>l.key)
+  );
+
+  allNodes().forEach(el=>{
+    el.classList.remove("core-focus-dim","core-focus-strong");
+    if(!state.coreFocus) return;
+    const isCore=CORE.includes(el.dataset.name);
+    el.classList.add(isCore ? "core-focus-strong" : "core-focus-dim");
+  });
+
+  allVisualLinks().forEach(el=>{
+    el.classList.remove("core-focus-dim","core-focus-strong");
+    if(!state.coreFocus) return;
+    const isCoreLink=coreLinkKeys.has(el.dataset.key);
+    el.classList.add(isCoreLink ? "core-focus-strong" : "core-focus-dim");
+  });
+}
+
+function clearFocus(){
+  allVisualLinks().forEach(el=>el.classList.remove("dim","focused"));
+  allNodes().forEach(el=>el.classList.remove("dim","focused"));
+  applyCoreFocus();
+}
+
+function focusLink(link,ev,locked=false){
+  const relevant=new Set([link.source,link.target]);
+  allVisualLinks().forEach(el=>{
+    const on=el.dataset.key===link.key;
+    el.classList.toggle("dim",!on);
+    el.classList.toggle("focused",on);
+  });
+  allNodes().forEach(el=>{
+    const on=relevant.has(el.dataset.name);
+    el.classList.toggle("dim",!on);
+    el.classList.toggle("focused",on);
+  });
+  if(ev) showTooltip(linkTooltip(link),ev);
+}
+
+function focusNode(name,ev,locked=false){
+  const links=linksForMode();
+  const keys=new Set(links.filter(l=>l.source===name||l.target===name||l.a===name||l.b===name).map(l=>l.key));
+  const related=new Set([name]);
+  links.forEach(l=>{
+    if(keys.has(l.key)){related.add(l.source);related.add(l.target);}
+  });
+  allVisualLinks().forEach(el=>{
+    const on=keys.has(el.dataset.key);
+    el.classList.toggle("dim",!on);
+    el.classList.toggle("focused",on);
+  });
+  allNodes().forEach(el=>{
+    const on=related.has(el.dataset.name);
+    el.classList.toggle("dim",!on);
+    el.classList.toggle("focused",el.dataset.name===name);
+  });
+  if(ev) showTooltip(nodeTooltip(name),ev);
+}
+
+function showTooltip(content,ev){
+  tooltip.innerHTML=content;
+  tooltip.classList.add("show");
+  moveTooltip(ev);
+}
+function moveTooltip(ev){
+  if(!ev) return;
+  const rect=mapCard.getBoundingClientRect();
+  let x=ev.clientX-rect.left+10;
+  let y=ev.clientY-rect.top+10;
+  const w=tooltip.offsetWidth||260,h=tooltip.offsetHeight||80;
+  if(x+w>rect.width-8)x=Math.max(8,x-w-22);
+  if(y+h>rect.height-8)y=Math.max(8,y-h-22);
+  tooltip.style.left=x+"px";tooltip.style.top=y+"px";
+}
+function hideTooltip(){tooltip.classList.remove("show");}
+
+function linkTooltip(l){
+  if(state.mode==="donor"){
+    return `<b>${esc(shortName(l.source))} → ${esc(shortName(l.target))}</b><br><span class="muted">Атрибуционный вес</span> ${fmt(l.value)}`;
+  }
+  if(state.mode==="recipient"){
+    return `<b>${esc(shortName(l.source))} → ${esc(shortName(l.target))}</b><br><span class="muted">Атрибуционный вес</span> ${fmt(l.value)}`;
+  }
+  const dominant=!Number.isFinite(l.ratio)
+    ? `${shortName(l.a)} → ${shortName(l.b)}`
+    : l.ratio>1.18
+      ? `${shortName(l.a)} → ${shortName(l.b)}`
+      : l.ratio<.85
+        ? `${shortName(l.b)} → ${shortName(l.a)}`
+        : "потоки близки к балансу";
+  return `<b>${esc(shortName(l.a))} ↔ ${esc(shortName(l.b))}</b><br>
+    <span class="muted">D/R = ${esc(shortName(l.a))}→${esc(shortName(l.b))} ÷ ${esc(shortName(l.b))}→${esc(shortName(l.a))}</span><br>
+    <b>${ratioFmt(l.ratio)}</b> · доминирует: ${esc(dominant)}`;
+}
+function nodeTooltip(name){
+  if(CORE.includes(name)){
+    const self=DATA.selfContribution[name];
+    return `<b>${esc(shortName(name))}</b><br><span class="muted">Собственный вклад</span><br>донорский отчет: ${fmt(self.donor)} · реципиентский: ${fmt(self.recipient)}`;
+  }
+  const st=externalDRStatus(name);
+  const stText=st==="donor" ? "устойчиво донор" : st==="recipient" ? "устойчиво реципиент" : "спорный / смешанный статус";
+  const metricLabel = state.mode==="donor"
+    ? "Донорская сила связи"
+    : state.mode==="recipient"
+      ? "Реципиентная сила связи"
+      : "Суммарная сила связи с ядром";
+  return `<b>${esc(shortName(name))}</b><br><span class="muted">${esc(metricLabel)}</span> ${fmt(metricForNode(name)||0)}<br><span class="muted">Размер шара отражает этот показатель</span><br><span class="muted">D/R-статус</span> ${esc(stText)}`;
+}
+
+function balancePosition(r){
+  if(!Number.isFinite(r)) return 100;
+  const log=Math.log2(Math.max(.125,Math.min(8,r)));
+  return Math.max(0,Math.min(100,50+log/3*50));
+}
+
+function showLinkPanel(l){
+  if(state.mode==="donor"){
+    side.innerHTML=`
+      <div class="eyebrow">Донорский поток</div>
+      <h2>${esc(shortName(l.source))} → ${esc(shortName(l.target))}</h2>
+      <p>Рекламные кампании <b>${esc(shortName(l.source))}</b> участвовали в формировании договоров бронирования <b>${esc(shortName(l.target))}</b>.</p>
+      <div class="kpi"><span class="label">Атрибуционный вес</span><span class="value">${fmt(l.value)}</span></div>
+      <div class="rule"></div>
+      <p>Это вес в линейной модели атрибуции, а не буквальное количество договоров.</p>`;
+  }else if(state.mode==="recipient"){
+    side.innerHTML=`
+      <div class="eyebrow">Входящий поток</div>
+      <h2>${esc(shortName(l.source))} → ${esc(shortName(l.target))}</h2>
+      <p>Кампании <b>${esc(shortName(l.source))}</b> участвовали в формировании договоров бронирования <b>${esc(shortName(l.target))}</b>.</p>
+      <div class="kpi"><span class="label">Атрибуционный вес</span><span class="value">${fmt(l.value)}</span></div>
+      <div class="rule"></div>
+      <p>Это вес в линейной модели атрибуции, а не буквальное количество договоров.</p>`;
+  }else{
+    const r=l.ratio;
+    const desc=!Number.isFinite(r)
+      ? `${shortName(l.a)} → ${shortName(l.b)}: входящий поток в ${shortName(l.a)} равен нулю.`
+      : r>1.18
+        ? `Доминирующее направление: ${shortName(l.a)} → ${shortName(l.b)}.`
+        : r<.85
+          ? `Доминирующее направление: ${shortName(l.b)} → ${shortName(l.a)}.`
+          : `Потоки между ${shortName(l.a)} и ${shortName(l.b)} близки к балансу.`;
+    let alt="";
+    if(l.altPerspective){
+      const a=l.altPerspective;
+      alt=`<div class="rule"></div>
+        <div class="eyebrow">Вторая перспектива внутри ядра</div>
+        <div class="kpi"><span class="label">D/R относительно ${esc(shortName(a.a))}</span><span class="value">${ratioFmt(a.ratio)}</span></div>
+        <p>D/R всегда читается от первого проекта: «из него» ÷ «в него».</p>`;
+    }
+    side.innerHTML=`
+      <div class="eyebrow">Баланс D/R</div>
+      <h2>${esc(shortName(l.a))} ↔ ${esc(shortName(l.b))}</h2>
+      <p><b>${esc(desc)}</b></p>
+      <div class="kpi"><span class="label">${esc(shortName(l.a))} → ${esc(shortName(l.b))}</span><span class="value">${fmt(l.donor)}</span></div>
+      <div class="kpi"><span class="label">${esc(shortName(l.b))} → ${esc(shortName(l.a))}</span><span class="value">${fmt(l.recipient)}</span></div>
+      <div class="kpi"><span class="label">D/R = ${esc(shortName(l.a))}→${esc(shortName(l.b))} ÷ ${esc(shortName(l.b))}→${esc(shortName(l.a))}</span><span class="value">${ratioFmt(r)}</span></div>
+      <div class="balance-strip">
+        <div class="balance-axis"><span class="balance-pointer" style="left:calc(${balancePosition(r)}% - 1px)"></span></div>
+        <div class="balance-labels"><span>сильнее В ${esc(shortName(l.a))}</span><span>баланс</span><span>сильнее ИЗ ${esc(shortName(l.a))}</span></div>
+      </div>
+      ${alt}
+      <div class="rule"></div>
+      <p>Правило чтения: <b>D/R &gt; 1</b> — сильнее поток из первого проекта в заголовке; <b>D/R &lt; 1</b> — сильнее поток в него. Стрелка на связи показывает это направление напрямую.</p>`;
+  }
+}
+
+function showNodePanel(name){
+  const isCore=CORE.includes(name);
+  if(isCore){
+    const self=DATA.selfContribution[name];
+    side.innerHTML=`
+      <div class="eyebrow">Ключевой проект</div>
+      <h2>${esc(shortName(name))}</h2>
+      <p>Выбранный узел. На карте оставлены только связи, в которых участвует этот проект.</p>
+      <div class="kpi"><span class="label">Собственный вклад · донорский отчет</span><span class="value">${fmt(self.donor)}</span></div>
+      <div class="kpi"><span class="label">Собственный вклад · реципиентский отчет</span><span class="value">${fmt(self.recipient)}</span></div>
+      <div class="kpi"><span class="label">${state.mode==="donor" ? "Донорская сила связей" : state.mode==="recipient" ? "Реципиентная сила связей" : "Суммарная сила внешних связей"}</span><span class="value">${fmt(metricForNode(name)||0)}</span></div>
+      <div class="rule"></div>
+      <p>Размер шара отражает ${state.mode==="donor" ? "донорскую" : state.mode==="recipient" ? "реципиентную" : "суммарную"} силу связей проекта; пунктирное внутреннее кольцо обозначает собственный вклад без межпроектного перетока.</p>`;
+  }else{
+    const st=externalDRStatus(name);
+    const stText=st==="donor" ? "донор" : st==="recipient" ? "реципиент" : "спорный / смешанный";
+    side.innerHTML=`
+      <div class="eyebrow">Внешний проект</div>
+      <h2>${esc(shortName(name))}</h2>
+      <p>${state.mode==="donor" ? "В режиме «Доноры» размер шара зависит от того, насколько сильно ядро передает поток в этот проект." : state.mode==="recipient" ? "В режиме «Реципиенты» размер шара зависит от того, насколько сильно этот проект передает поток в ядро." : "В режиме «Баланс D/R» размер шара зависит от суммарной силы связей проекта с ядром."} Цвет шара показывает D/R-статус, если он однозначен.</p>
+      <div class="kpi"><span class="label">${state.mode==="donor" ? "Донорская сила связи" : state.mode==="recipient" ? "Реципиентная сила связи" : "Суммарный вес связей с ядром"}</span><span class="value">${fmt(metricForNode(name)||0)}</span></div>
+      <div class="kpi"><span class="label">D/R-статус</span><span class="value">${esc(stText)}</span></div>`;
+  }
+}
+
+function defaultPanel(){
+  side.innerHTML=`
+    <div class="empty-state">
+      <div class="eyebrow">Интерактивная карта</div>
+      <div class="big">Выберите связь или ЖК</div>
+      <div class="small">Наведение подсвечивает связанный маршрут. Клик фиксирует выбор и открывает детали здесь.</div>
+      <div class="rule"></div>
+      <div class="small"><b>Как читать D/R:</b><br>D/R = «из центрального ЖК в другой» ÷ «из другого ЖК в центральный».<br><b>&gt; 1</b> — сильнее наружу; <b>&lt; 1</b> — сильнее внутрь. Стрелка показывает доминирующее направление, а серые связи остаются без стрелки.<br>Внешние шары: <span style="color:#38576c">сине-серые</span> = устойчиво доноры, <span style="color:#6a493d">песочно-коричневые</span> = устойчиво реципиенты, <span style="color:#6b7478">серые</span> = спорные случаи.</div>
+      <div class="rule"></div>
+      <div class="small"><b>TOP-10:</b><br>${DATA.top10.map(shortName).map(esc).join(" · ")}</div>
+    </div>`;
+}
+
+function setActive(container,selector,value,attr){
+  container.querySelectorAll("button").forEach(b=>b.classList.toggle("active",b.dataset[attr]===String(value)));
+}
+
+document.getElementById("modeSegment").addEventListener("click",e=>{
+  const b=e.target.closest("button"); if(!b)return;
+  state.mode=b.dataset.mode; state.locked=null;
+  setActive(e.currentTarget,"button",state.mode,"mode"); render();
+});
+document.getElementById("projectSegment").addEventListener("click",e=>{
+  const b=e.target.closest("button"); if(!b)return;
+  state.project=b.dataset.project; state.locked=null;
+  setActive(e.currentTarget,"button",state.project,"project"); render();
+});
+document.getElementById("countSegment").addEventListener("click",e=>{
+  const b=e.target.closest("button"); if(!b)return;
+  state.count=b.dataset.count==="all"?"all":Number(b.dataset.count);
+  state.locked=null;
+  setActive(e.currentTarget,"button",state.count,"count"); render();
+});
+trioOnly.addEventListener("change",()=>{
+  state.trioOnly=trioOnly.checked; state.locked=null; render();
+});
+coreFocus.addEventListener("change",()=>{
+  state.coreFocus=coreFocus.checked;
+  state.locked=null;
+  clearFocus();
+  defaultPanel();
+});
+
+const modal=document.getElementById("modalBackdrop");
+document.getElementById("infoBtn").addEventListener("click",()=>modal.classList.add("show"));
+document.getElementById("closeModal").addEventListener("click",()=>modal.classList.remove("show"));
+modal.addEventListener("click",e=>{if(e.target===modal)modal.classList.remove("show")});
+document.addEventListener("keydown",e=>{if(e.key==="Escape"){modal.classList.remove("show");state.locked=null;clearFocus();defaultPanel();}});
+
+render();
+</script>
+</body>
+</html>
